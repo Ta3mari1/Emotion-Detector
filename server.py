@@ -1,8 +1,8 @@
-'''
-Executing this function initiates the application of sentiment
-analysis to be executed over the Flask channel and deployed on
-localhost:5000.
-'''
+"""
+This module provides a Flask web application for emotion detection.
+It processes text input from users and returns emotion analysis results.
+"""
+
 from flask import Flask, render_template, request, jsonify
 from EmotionDetection.emotion_detection import emotion_detector
 
@@ -10,16 +10,26 @@ app = Flask("Sentiment Analyzer")
 
 @app.route("/sentimentAnalyzer", methods=["GET", "POST"])
 def sent_analyzer():
+    """
+    Handles requests to analyze emotions from a given text input.
+
+    Returns:
+        JSON response with the emotion analysis results or an error message.
+    """
     if request.method == "POST":
         data = request.json
         statement = data.get('statement')
-    else:  # For GET requests
+    else:
         statement = request.args.get('textToAnalyze')
-    
-    if not statement:
-        return jsonify({"error": "Please provide a valid statement"}), 400
-    
+
+    if not statement or not statement.strip():
+        return jsonify({"response": "Invalid text! Please try again!"}), 400
+
     result = emotion_detector(statement)
+
+    if result["dominant_emotion"] is None:
+        return jsonify({"response": "Invalid text! Please try again!"}), 400
+
     response_text = (
         f"For the given statement, the system response is "
         f"'anger': {result['anger']}, "
@@ -33,12 +43,16 @@ def sent_analyzer():
 
 @app.route("/")
 def render_index_page():
-    ''' This function initiates the rendering of the main application
-        page over the Flask channel
-    '''
+    """
+    Renders the main application page.
+
+    Returns:
+        Rendered HTML page.
+    """
     return render_template("index.html")
 
 if __name__ == "__main__":
-    ''' This function executes the Flask app and deploys it on localhost:5000
-    '''
+    """
+    Runs the Flask application on localhost at port 8000.
+    """
     app.run(host='0.0.0.0', port=8000)
